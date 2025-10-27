@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>hhtp.github.io</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="calc-ui">
+    <div class="display" id="display">Welcome to HHTP</div>
+    <div class="grid">
+      <button onclick="loadModule('login')">Login</button>
+      <button onclick="loadModule('signup')">Sign Up</button>
+      <button onclick="loadModule('threads')">Threads</button>
+      <button onclick="loadModule('videos')">Scroll Feed</button>
+      <button onclick="loadModule('downloads')">Downloads</button>
+      <button onclick="loadModule('settings')">Settings</button>
+    </div>
+  </div>
+
+  <script>
+    function loadModule(name) {
+      const display = document.getElementById('display');
+      display.textContent = `Loading ${name}...`;
+      // Later: replace with actual module logic
+    }
+  </script>
+</body>
+</html>
