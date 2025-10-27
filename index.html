@@ -6,23 +6,28 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="calc-ui">
-    <div class="display" id="display">Welcome to HHTP</div>
-    <div class="grid">
-      <button onclick="loadModule('login')">Login</button>
-      <button onclick="loadModule('signup')">Sign Up</button>
-      <button onclick="loadModule('threads')">Threads</button>
-      <button onclick="loadModule('videos')">Scroll Feed</button>
-      <button onclick="loadModule('downloads')">Downloads</button>
-      <button onclick="loadModule('settings')">Settings</button>
-    </div>
+  <div class="hhtp-ui">
+    <header>
+      <h1>HHTP</h1>
+      <p>easy, simple, chaos</p>
+    </header>
+    <main>
+      <div class="button-grid">
+        <button onclick="loadModule('login')">Login</button>
+        <button onclick="loadModule('signup')">Sign Up</button>
+        <button onclick="loadModule('threads')">Threads</button>
+        <button onclick="loadModule('feed')">Scroll Feed</button>
+        <button onclick="loadModule('downloads')">Downloads</button>
+        <button onclick="loadModule('settings')">Settings</button>
+      </div>
+      <div class="module-display" id="display">Welcome to HHTP</div>
+    </main>
   </div>
 
   <script>
     function loadModule(name) {
-      const display = document.getElementById('display');
-      display.textContent = `Loading ${name}...`;
-      // Later: replace with actual module logic
+      document.getElementById('display').textContent = `Loading ${name}...`;
+      // Later: swap content dynamically
     }
   </script>
 </body>
