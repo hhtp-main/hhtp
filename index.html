@@ -2,32 +2,130 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>hhtp</title>
-  <link rel="stylesheet" href="style.css">
+  <title>HHTP</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    button {
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    button:hover {
+      background: #0f0;
+      color: #000;
+    }
+    #display {
+      margin-top: 30px;
+      padding: 20px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    input {
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #0f0;
+      background: #111;
+      color: #0f0;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 6px;
+      border-bottom: 1px solid #333;
+    }
+  </style>
 </head>
 <body>
-  <div class="hhtp-ui">
-    <header>
-      <h1>HHTP</h1>
-      <p>easy, simple, chaos</p>
-    </header>
-    <main>
-      <div class="button-grid">
-        <button onclick="loadModule('login')">Login</button>
-        <button onclick="loadModule('signup')">Sign Up</button>
-        <button onclick="loadModule('threads')">Threads</button>
-        <button onclick="loadModule('feed')">Scroll Feed</button>
-        <button onclick="loadModule('downloads')">Downloads</button>
-        <button onclick="loadModule('settings')">Settings</button>
-      </div>
-      <div class="module-display" id="display">Welcome to HHTP</div>
-    </main>
+  <h1>HHTP</h1>
+  <p>Modular chaos lives here.</p>
+
+  <div class="button-grid">
+    <button onclick="load('login')">Login</button>
+    <button onclick="load('signup')">Sign Up</button>
+    <button onclick="load('threads')">Threads</button>
+    <button onclick="load('feed')">Scroll Feed</button>
+    <button onclick="load('downloads')">Downloads</button>
+    <button onclick="load('settings')">Settings</button>
   </div>
 
+  <div id="display">Welcome to HHTP</div>
+
   <script>
-    function loadModule(name) {
-      document.getElementById('display').textContent = `Loading ${name}...`;
-      // Later: swap content dynamically
+    function load(module) {
+      const display = document.getElementById('display');
+      switch (module) {
+        case 'login':
+          display.innerHTML = `<h2>Login</h2><input placeholder="Username"><br><input type="password" placeholder="Password"><br><button onclick="alert('Logged in')">Enter</button>`;
+          break;
+        case 'signup':
+          display.innerHTML = `<h2>Sign Up</h2><input placeholder="New Username"><br><input type="password" placeholder="New Password"><br><button onclick="alert('Signed up')">Create</button>`;
+          break;
+        case 'threads':
+          display.innerHTML = `
+            <h2>Threads</h2>
+            <ul id="thread-list"></ul>
+            <input type="text" id="new-thread" placeholder="Type your thread here">
+            <button onclick="uploadThread()">Upload</button>
+          `;
+          loadThreads();
+          break;
+        case 'feed':
+          display.innerHTML = `<h2>Scroll Feed</h2><p>🌀 Loading cursed content...</p><p>🐍 Snake upgrade spotted</p><p>🎛️ Modular UI detected</p>`;
+          break;
+        case 'downloads':
+          display.innerHTML = `<h2>Downloads</h2><button onclick="alert('Downloading chaos.zip')">Chaos Pack</button><br><button onclick="alert('Downloading prefab-ui.json')">UI Prefabs</button>`;
+          break;
+        case 'settings':
+          display.innerHTML = `<h2>Settings</h2><label><input type="checkbox"> Enable Ad Toggle</label><br><label><input type="checkbox"> Debug Mode</label>`;
+          break;
+        default:
+          display.textContent = `Loading ${module}...`;
+      }
+    }
+
+    function loadThreads() {
+      const list = document.getElementById('thread-list');
+      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
+      list.innerHTML = threads.map(t => `<li>${t}</li>`).join('');
+    }
+
+    function uploadThread() {
+      const input = document.getElementById('new-thread');
+      const thread = input.value.trim();
+      if (!thread) return;
+
+      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
+      threads.push(thread);
+      localStorage.setItem('hhtpThreads', JSON.stringify(threads));
+      input.value = '';
+      loadThreads();
     }
   </script>
 </body>
