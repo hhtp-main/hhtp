@@ -43,7 +43,7 @@
       border: 1px solid #333;
       border-radius: 8px;
     }
-    input {
+    input, textarea {
       padding: 10px;
       font-size: 1em;
       border: 1px solid #0f0;
@@ -51,6 +51,7 @@
       color: #0f0;
       border-radius: 5px;
       margin-top: 10px;
+      width: 80%;
     }
     ul {
       list-style: none;
@@ -63,70 +64,192 @@
   </style>
 </head>
 <body>
-  <h1>HHTP</h1>
+  <h1 id="welcome-title">HHTP</h1>
   <p>Modular chaos lives here.</p>
 
-  <div class="button-grid">
-    <button onclick="load('login')">Login</button>
-    <button onclick="load('signup')">Sign Up</button>
-    <button onclick="load('threads')">Threads</button>
-    <button onclick="load('feed')">Scroll Feed</button>
-    <button onclick="load('downloads')">Downloads</button>
-    <button onclick="load('settings')">Settings</button>
-  </div>
-
+  <div class="button-grid" id="button-grid"></div>
   <div id="display">Welcome to HHTP</div>
 
   <script>
+    let hhtpUser = localStorage.getItem('hhtpUser') || null;
+
+    function renderButtons() {
+      const grid = document.getElementById('button-grid');
+      let buttons = `
+        <button onclick="load('threads')">Threads</button>
+        <button onclick="load('feed')">Scroll Feed</button>
+        <button onclick="load('downloads')">Downloads</button>
+        <button onclick="load('settings')">Settings</button>
+        <button onclick="load('messages')">Messages</button>
+      `;
+      if (!hhtpUser) {
+        buttons = `
+          <button onclick="load('login')">Login</button>
+          <button onclick="load('signup')">Sign Up</button>
+        ` + buttons;
+      }
+      grid.innerHTML = buttons;
+    }
+
+    function updateWelcome() {
+      const title = document.getElementById('welcome-title');
+      title.textContent = hhtpUser ? `Welcome, ${hhtpUser}` : 'HHTP';
+    }
+
     function load(module) {
       const display = document.getElementById('display');
       switch (module) {
         case 'login':
-          display.innerHTML = `<h2>Login</h2><input placeholder="Username"><br><input type="password" placeholder="Password"><br><button onclick="alert('Logged in')">Enter</button>`;
+          display.innerHTML = `
+            <h2>Login</h2>
+            <input id="username" placeholder="Username"><br>
+            <input type="password" id="password" placeholder="Password"><br>
+            <button onclick="submitLogin()">Enter</button>
+            <div id="login-status"></div>
+          `;
           break;
+
         case 'signup':
-          display.innerHTML = `<h2>Sign Up</h2><input placeholder="New Username"><br><input type="password" placeholder="New Password"><br><button onclick="alert('Signed up')">Create</button>`;
+          display.innerHTML = `
+            <h2>Sign Up</h2>
+            <input id="newuser" placeholder="New Username"><br>
+            <input type="password" id="newpass" placeholder="New Password"><br>
+            <button onclick="submitSignup()">Create</button>
+          `;
           break;
+
         case 'threads':
           display.innerHTML = `
             <h2>Threads</h2>
             <ul id="thread-list"></ul>
-            <input type="text" id="new-thread" placeholder="Type your thread here">
+            <input type="text" id="new-thread" placeholder="New thread">
             <button onclick="uploadThread()">Upload</button>
           `;
           loadThreads();
           break;
+
         case 'feed':
-          display.innerHTML = `<h2>Scroll Feed</h2><p>🌀 Loading cursed content...</p><p>🐍 Snake upgrade spotted</p><p>🎛️ Modular UI detected</p>`;
+          display.innerHTML = `
+            <h2>Scroll Feed</h2>
+            <ul id="feed-list"></ul>
+            <input type="text" id="new-feed" placeholder="Add to feed">
+            <button onclick="uploadFeed()">Upload</button>
+          `;
+          loadFeed();
           break;
+
         case 'downloads':
-          display.innerHTML = `<h2>Downloads</h2><button onclick="alert('Downloading chaos.zip')">Chaos Pack</button><br><button onclick="alert('Downloading prefab-ui.json')">UI Prefabs</button>`;
+          display.innerHTML = `
+            <h2>Downloads</h2>
+            <a href="chaos.zip" download><button>Download Chaos Pack</button></a><br>
+            <a href="prefab-ui.json" download><button>Download UI Prefabs</button></a>
+          `;
           break;
+
         case 'settings':
-          display.innerHTML = `<h2>Settings</h2><label><input type="checkbox"> Enable Ad Toggle</label><br><label><input type="checkbox"> Debug Mode</label>`;
+          display.innerHTML = `
+            <h2>Settings</h2>
+            <label><input type="checkbox"> Enable Ad Toggle</label><br>
+            <label><input type="checkbox"> Debug Mode</label>
+          `;
           break;
+
+        case 'messages':
+          display.innerHTML = `
+            <h2>Messages</h2>
+            <textarea id="message-box" placeholder="Type a message"></textarea><br>
+            <button onclick="sendMessage()">Send</button>
+            <ul id="message-list"></ul>
+          `;
+          loadMessages();
+          break;
+
         default:
           display.textContent = `Loading ${module}...`;
+      }
+    }
+
+    function submitLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const status = document.getElementById('login-status');
+      if (user && pass) {
+        hhtpUser = user;
+        localStorage.setItem('hhtpUser', user);
+        status.textContent = `Welcome, ${user}`;
+        status.style.color = '#0f0';
+        renderButtons();
+        updateWelcome();
+      } else {
+        status.textContent = 'Invalid credentials';
+        status.style.color = '#f00';
+      }
+    }
+
+    function submitSignup() {
+      const user = document.getElementById('newuser').value.trim();
+      const pass = document.getElementById('newpass').value.trim();
+      if (user && pass) {
+        hhtpUser = user;
+        localStorage.setItem('hhtpUser', user);
+        renderButtons();
+        updateWelcome();
+        load('threads');
       }
     }
 
     function loadThreads() {
       const list = document.getElementById('thread-list');
       const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      list.innerHTML = threads.map(t => `<li>${t}</li>`).join('');
+      list.innerHTML = threads.map((t, i) => `
+        <li>
+          ${t.text}
+          <ul>${(t.replies || []).map(r => `<li>${r}</li>`).join('')}</ul>
+          <input type="text" id="reply-${i}" placeholder="Reply">
+          <button onclick="replyToThread(${i})">Reply</button>
+        </li>
+      `).join('');
     }
 
     function uploadThread() {
       const input = document.getElementById('new-thread');
       const thread = input.value.trim();
       if (!thread) return;
-
       const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      threads.push(thread);
+      threads.push({ text: thread, replies: [] });
       localStorage.setItem('hhtpThreads', JSON.stringify(threads));
       input.value = '';
       loadThreads();
     }
-  </script>
-</body>
-</html>
+
+    function replyToThread(index) {
+      const input = document.getElementById(`reply-${index}`);
+      const reply = input.value.trim();
+      if (!reply) return;
+      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
+      threads[index].replies.push(reply);
+      localStorage.setItem('hhtpThreads', JSON.stringify(threads));
+      loadThreads();
+    }
+
+    function loadFeed() {
+      const list = document.getElementById('feed-list');
+      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
+      list.innerHTML = feed.map(f => `<li>${f}</li>`).join('');
+    }
+
+    function uploadFeed() {
+      const input = document.getElementById('new-feed');
+      const item = input.value.trim();
+      if (!item) return;
+      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
+      feed.push(item);
+      localStorage.setItem('hhtpFeed', JSON.stringify(feed));
+      input.value = '';
+      loadFeed();
+    }
+
+    function loadMessages() {
+      const list = document.getElementById('message-list');
+      const messages = JSON.parse(localStorage.getItem('hhtpMessages') || '[]');
+      list.innerHTML = messages.map(m => `<li>${m
