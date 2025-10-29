@@ -87,6 +87,8 @@
           <button onclick="load('login')">Login</button>
           <button onclick="load('signup')">Sign Up</button>
         ` + buttons;
+      } else {
+        buttons += `<button onclick="logout()">Logout</button>`;
       }
       grid.innerHTML = buttons;
     }
@@ -94,6 +96,14 @@
     function updateWelcome() {
       const title = document.getElementById('welcome-title');
       title.textContent = hhtpUser ? `Welcome, ${hhtpUser}` : 'HHTP';
+    }
+
+    function logout() {
+      localStorage.removeItem('hhtpUser');
+      hhtpUser = null;
+      renderButtons();
+      updateWelcome();
+      document.getElementById('display').textContent = 'You have logged out.';
     }
 
     function load(module) {
@@ -244,12 +254,4 @@
       if (!item) return;
       const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
       feed.push(item);
-      localStorage.setItem('hhtpFeed', JSON.stringify(feed));
-      input.value = '';
-      loadFeed();
-    }
-
-    function loadMessages() {
-      const list = document.getElementById('message-list');
-      const messages = JSON.parse(localStorage.getItem('hhtpMessages') || '[]');
-      list.innerHTML = messages.map(m => `<li>${m
+      localStorage.setItem('hhtpFeed
