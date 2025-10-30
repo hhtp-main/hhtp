@@ -9,19 +9,15 @@
 <body>
   <h1 id="welcome-title">HHTP</h1>
   <p>Modular chaos lives here.</p>
-
   <div class="button-grid" id="button-grid"></div>
   <div id="display">Welcome to HHTP</div>
-
   <script>
     const supabase = window.supabase.createClient(
       'https://bxbqofexcvssbcyprqwj.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4YnFvZmV4Y3Zzc2JjeXBycXdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3ODAwMzgsImV4cCI6MjA3NzM1NjAzOH0.NPBLuH-yr9M3yf83pS5P05MYsPb_1QVGb-bPjQETxTA'
     );
-
     let hhtpUser = localStorage.getItem('hhtpUser') || null;
     let hhtpUsers = JSON.parse(localStorage.getItem('hhtpUsers') || '[]');
-
     function renderButtons() {
       const grid = document.getElementById('button-grid');
       let buttons = `
@@ -42,19 +38,16 @@
       }
       grid.innerHTML = buttons;
     }
-
     function updateWelcome() {
-      const title = document.getElementById('welcome-title');
-      title.textContent = hhtpUser ? `Welcome, ${hhtpUser}` : 'HHTP';
+      document.getElementById('welcome-title').textContent = hhtpUser ? `Welcome, ${hhtpUser}` : 'HHTP';
     }
-
     function logout() {
       localStorage.removeItem('hhtpUser');
+      hhtpUser = null;
       renderButtons();
       updateWelcome();
       document.getElementById('display').textContent = 'You have logged out.';
     }
-
     function load(module) {
       const display = document.getElementById('display');
       if (module === 'login') {
@@ -114,7 +107,6 @@
         loadThreads();
       }
     }
-
     function submitLogin() {
       const user = document.getElementById('username').value.trim();
       const status = document.getElementById('login-status');
@@ -128,7 +120,6 @@
       renderButtons();
       updateWelcome();
     }
-
     function submitSignup() {
       const user = document.getElementById('newuser').value.trim();
       if (!user) return;
@@ -141,58 +132,8 @@
       updateWelcome();
       load('feed');
     }
-
     function uploadFeed() {
       const input = document.getElementById('new-feed');
       const item = input.value.trim();
       if (!item) return;
-      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
-      feed.push(item);
-      localStorage.setItem('hhtpFeed', JSON.stringify(feed));
-      input.value = '';
-      loadFeed();
-    }
-
-    async function uploadVideo() {
-      const fileInput = document.getElementById('video-upload');
-      const file = fileInput.files[0];
-      if (!file) return;
-      const filename = `${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from('hhtp-feed').upload(filename, file);
-      if (error) return alert('Upload failed: ' + error.message);
-      const url = `https://bxbqofexcvssbcyprqwj.supabase.co/storage/v1/object/public/hhtp-feed/${filename}`;
-      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
-      feed.push(url);
-      localStorage.setItem('hhtpFeed', JSON.stringify(feed));
-      loadFeed();
-    }
-
-    function loadFeed() {
-      const list = document.getElementById('feed-list');
-      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
-      list.innerHTML = feed.map((f, i) => {
-        const followBtn = `<button onclick="followItem('feed_${i}')">Follow</button>`;
-        if (f.endsWith('.mp4')) {
-          return `<li><video width="300" controls><source src="${f}" type="video/mp4"></video>${followBtn}</li>`;
-        } else {
-          return `<li>${f} ${followBtn}</li>`;
-        }
-      }).join('');
-    }
-
-    function uploadThread() {
-      const title = document.getElementById('thread-title').value.trim();
-      const body = document.getElementById('thread-body').value.trim();
-      if (!title || !body) return;
-      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      threads.push({ title, body, replies: [] });
-      localStorage.setItem('hhtpThreads', JSON.stringify(threads));
-      loadThreads();
-    }
-
-    function loadThreads() {
-      const list = document.getElementById('thread-list');
-      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      list.innerHTML = threads.map((t, i) => `
-        <li>
-          <strong>${t
+      const feed = JSON.parse(localStorage.getItem('hhtpFeed')
