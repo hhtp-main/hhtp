@@ -1,139 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>HHTP</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-  <h1 id="welcome-title">HHTP</h1>
-  <p>Modular chaos lives here.</p>
-  <div class="button-grid" id="button-grid"></div>
-  <div id="display">Welcome to HHTP</div>
-  <script>
-    const supabase = window.supabase.createClient(
-      'https://bxbqofexcvssbcyprqwj.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4YnFvZmV4Y3Zzc2JjeXBycXdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3ODAwMzgsImV4cCI6MjA3NzM1NjAzOH0.NPBLuH-yr9M3yf83pS5P05MYsPb_1QVGb-bPjQETxTA'
-    );
-    let hhtpUser = localStorage.getItem('hhtpUser') || null;
-    let hhtpUsers = JSON.parse(localStorage.getItem('hhtpUsers') || '[]');
-    function renderButtons() {
-      const grid = document.getElementById('button-grid');
-      let buttons = `
-        <button onclick="load('threads')">Threads</button>
-        <button onclick="load('feed')">Scroll Feed</button>
-        <button onclick="load('downloads')">Downloads</button>
-        <button onclick="load('settings')">Settings</button>
-        <button onclick="load('messages')">Messages</button>
-        <button onclick="load('notifications')">Notifications</button>
-      `;
-      if (!hhtpUser) {
-        buttons = `
-          <button onclick="load('login')">Login</button>
-          <button onclick="load('signup')">Sign Up</button>
-        ` + buttons;
-      } else {
-        buttons += `<button onclick="logout()">Logout</button>`;
-      }
-      grid.innerHTML = buttons;
-    }
-    function updateWelcome() {
-      document.getElementById('welcome-title').textContent = hhtpUser ? `Welcome, ${hhtpUser}` : 'HHTP';
-    }
-    function logout() {
-      localStorage.removeItem('hhtpUser');
-      hhtpUser = null;
-      renderButtons();
-      updateWelcome();
-      document.getElementById('display').textContent = 'You have logged out.';
-    }
-    function load(module) {
-      const display = document.getElementById('display');
-      if (module === 'login') {
-        display.innerHTML = `
-          <h2>Login</h2>
-          <input id="username" placeholder="Username"><br>
-          <input type="password" id="password" placeholder="Password"><br>
-          <button onclick="submitLogin()">Enter</button>
-          <div id="login-status"></div>
-        `;
-      } else if (module === 'signup') {
-        display.innerHTML = `
-          <h2>Sign Up</h2>
-          <input id="newuser" placeholder="New Username"><br>
-          <input type="password" id="newpass" placeholder="New Password"><br>
-          <button onclick="submitSignup()">Create</button>
-        `;
-      } else if (module === 'feed') {
-        display.innerHTML = `
-          <h2>Scroll Feed</h2>
-          <ul id="feed-list"></ul>
-          <input type="text" id="new-feed" placeholder="Add text to feed">
-          <button onclick="uploadFeed()">Upload Text</button><br><br>
-          <input type="file" id="video-upload" accept="video/mp4">
-          <button onclick="uploadVideo()">Upload Video</button>
-        `;
-        loadFeed();
-      } else if (module === 'downloads') {
-        display.innerHTML = `
-          <h2>Downloads</h2>
-          <a href="chaos.zip" download><button>Download Chaos Pack</button></a><br>
-          <a href="prefab-ui.json" download><button>Download UI Prefabs</button></a>
-        `;
-      } else if (module === 'settings') {
-        display.innerHTML = `
-          <h2>Settings</h2>
-          <label><input type="checkbox"> Enable Ad Toggle</label><br>
-          <label><input type="checkbox"> Debug Mode</label>
-        `;
-      } else if (module === 'messages') {
-        display.innerHTML = `
-          <h2>Messages</h2>
-          <input id="recipient" placeholder="Send to username"><br>
-          <textarea id="message-box" placeholder="Type a message"></textarea><br>
-          <button onclick="sendMessage()">Send</button>
-        `;
-      } else if (module === 'notifications') {
-        loadNotifications();
-      } else if (module === 'threads') {
-        display.innerHTML = `
-          <h2>Threads</h2>
-          <ul id="thread-list"></ul>
-          <input type="text" id="thread-title" placeholder="Thread title"><br>
-          <textarea id="thread-body" placeholder="Thread body"></textarea><br>
-          <button onclick="uploadThread()">Post Thread</button>
-        `;
-        loadThreads();
-      }
-    }
-    function submitLogin() {
-      const user = document.getElementById('username').value.trim();
-      const status = document.getElementById('login-status');
-      if (!hhtpUsers.includes(user)) {
-        status.textContent = 'Account Not Found, try signing in.';
-        return;
-      }
-      hhtpUser = user;
-      localStorage.setItem('hhtpUser', user);
-      localStorage.setItem(`lastSeen_${user}`, getInbox(user).length);
-      renderButtons();
-      updateWelcome();
-    }
-    function submitSignup() {
-      const user = document.getElementById('newuser').value.trim();
-      if (!user) return;
-      hhtpUsers.push(user);
-      localStorage.setItem('hhtpUsers', JSON.stringify(hhtpUsers));
-      hhtpUser = user;
-      localStorage.setItem('hhtpUser', user);
-      localStorage.setItem(`lastSeen_${user}`, 0);
-      renderButtons();
-      updateWelcome();
-      load('feed');
-    }
-    function uploadFeed() {
-      const input = document.getElementById('new-feed');
-      const item = input.value.trim();
-      if (!item) return;
-      const feed = JSON.parse(localStorage.getItem('hhtpFeed')
+/* Base layout */
+body {
+  background: #0a0a0a;
+  color: #eee;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  padding: 40px;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 1.2em;
+  color: #ccc;
+}
+
+/* Button grid */
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+/* Buttons */
+button {
+  background: #222;
+  color: #0f0;
+  border: 1px solid #0f0;
+  padding: 12px;
+  font-size: 1em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #0f0;
+  color: #000;
+}
+
+/* Display zone */
+#display {
+  margin-top: 30px;
+  padding: 20px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+/* Inputs and textareas */
+input, textarea {
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #0f0;
+  background: #111;
+  color: #0f0;
+  border-radius: 5px;
+  margin-top: 10px;
+  width: 80%;
+}
+
+/* Lists */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 6px;
+  border-bottom: 1px solid #333;
+}
+
+/* Video styling */
+video {
+  margin-top: 10px;
+  border: 1px solid #0f0;
+  border-radius: 6px;
+}
