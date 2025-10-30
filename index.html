@@ -20,15 +20,17 @@
     );
 
     let hhtpUser = localStorage.getItem('hhtpUser') || null;
+    let hhtpUsers = JSON.parse(localStorage.getItem('hhtpUsers') || '[]');
 
     function renderButtons() {
       const grid = document.getElementById('button-grid');
       let buttons = `
-        <button onclick="load('feed')">Scroll Feed</button>
         <button onclick="load('threads')">Threads</button>
+        <button onclick="load('feed')">Scroll Feed</button>
         <button onclick="load('downloads')">Downloads</button>
         <button onclick="load('settings')">Settings</button>
         <button onclick="load('messages')">Messages</button>
+        <button onclick="load('notifications')">Notifications</button>
       `;
       if (!hhtpUser) {
         buttons = `
@@ -48,7 +50,6 @@
 
     function logout() {
       localStorage.removeItem('hhtpUser');
-      hhtpUser = null;
       renderButtons();
       updateWelcome();
       document.getElementById('display').textContent = 'You have logged out.';
@@ -56,104 +57,89 @@
 
     function load(module) {
       const display = document.getElementById('display');
-      switch (module) {
-        case 'login':
-          display.innerHTML = `
-            <h2>Login</h2>
-            <input id="username" placeholder="Username"><br>
-            <input type="password" id="password" placeholder="Password"><br>
-            <button onclick="submitLogin()">Enter</button>
-            <div id="login-status"></div>
-          `;
-          break;
-
-        case 'signup':
-          display.innerHTML = `
-            <h2>Sign Up</h2>
-            <input id="newuser" placeholder="New Username"><br>
-            <input type="password" id="newpass" placeholder="New Password"><br>
-            <button onclick="submitSignup()">Create</button>
-          `;
-          break;
-
-        case 'feed':
-          display.innerHTML = `
-            <h2>Scroll Feed</h2>
-            <ul id="feed-list"></ul>
-            <input type="text" id="new-feed" placeholder="Add text to feed">
-            <button onclick="uploadFeed()">Upload Text</button>
-            <br><br>
-            <input type="file" id="video-upload" accept="video/mp4">
-            <button onclick="uploadVideo()">Upload Video</button>
-          `;
-          loadFeed();
-          break;
-
-        case 'downloads':
-          display.innerHTML = `
-            <h2>Downloads</h2>
-            <a href="chaos.zip" download><button>Download Chaos Pack</button></a><br>
-            <a href="prefab-ui.json" download><button>Download UI Prefabs</button></a>
-          `;
-          break;
-
-        case 'settings':
-          display.innerHTML = `
-            <h2>Settings</h2>
-            <label><input type="checkbox"> Enable Ad Toggle</label><br>
-            <label><input type="checkbox"> Debug Mode</label>
-          `;
-          break;
-
-        case 'messages':
-          display.innerHTML = `
-            <h2>Messages</h2>
-            <textarea id="message-box" placeholder="Type a message"></textarea><br>
-            <button onclick="sendMessage()">Send</button>
-            <ul id="message-list"></ul>
-          `;
-          loadMessages();
-          break;
-
-        case 'threads':
-          display.innerHTML = `
-            <h2>Threads</h2>
-            <ul id="thread-list"></ul>
-            <input type="text" id="new-thread" placeholder="New thread">
-            <button onclick="uploadThread()">Upload</button>
-          `;
-          loadThreads();
-          break;
+      if (module === 'login') {
+        display.innerHTML = `
+          <h2>Login</h2>
+          <input id="username" placeholder="Username"><br>
+          <input type="password" id="password" placeholder="Password"><br>
+          <button onclick="submitLogin()">Enter</button>
+          <div id="login-status"></div>
+        `;
+      } else if (module === 'signup') {
+        display.innerHTML = `
+          <h2>Sign Up</h2>
+          <input id="newuser" placeholder="New Username"><br>
+          <input type="password" id="newpass" placeholder="New Password"><br>
+          <button onclick="submitSignup()">Create</button>
+        `;
+      } else if (module === 'feed') {
+        display.innerHTML = `
+          <h2>Scroll Feed</h2>
+          <ul id="feed-list"></ul>
+          <input type="text" id="new-feed" placeholder="Add text to feed">
+          <button onclick="uploadFeed()">Upload Text</button><br><br>
+          <input type="file" id="video-upload" accept="video/mp4">
+          <button onclick="uploadVideo()">Upload Video</button>
+        `;
+        loadFeed();
+      } else if (module === 'downloads') {
+        display.innerHTML = `
+          <h2>Downloads</h2>
+          <a href="chaos.zip" download><button>Download Chaos Pack</button></a><br>
+          <a href="prefab-ui.json" download><button>Download UI Prefabs</button></a>
+        `;
+      } else if (module === 'settings') {
+        display.innerHTML = `
+          <h2>Settings</h2>
+          <label><input type="checkbox"> Enable Ad Toggle</label><br>
+          <label><input type="checkbox"> Debug Mode</label>
+        `;
+      } else if (module === 'messages') {
+        display.innerHTML = `
+          <h2>Messages</h2>
+          <input id="recipient" placeholder="Send to username"><br>
+          <textarea id="message-box" placeholder="Type a message"></textarea><br>
+          <button onclick="sendMessage()">Send</button>
+        `;
+      } else if (module === 'notifications') {
+        loadNotifications();
+      } else if (module === 'threads') {
+        display.innerHTML = `
+          <h2>Threads</h2>
+          <ul id="thread-list"></ul>
+          <input type="text" id="thread-title" placeholder="Thread title"><br>
+          <textarea id="thread-body" placeholder="Thread body"></textarea><br>
+          <button onclick="uploadThread()">Post Thread</button>
+        `;
+        loadThreads();
       }
     }
 
     function submitLogin() {
       const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
       const status = document.getElementById('login-status');
-      if (user && pass) {
-        hhtpUser = user;
-        localStorage.setItem('hhtpUser', user);
-        status.textContent = `Welcome, ${user}`;
-        status.style.color = '#0f0';
-        renderButtons();
-        updateWelcome();
-      } else {
-        status.textContent = 'Invalid credentials';
-        status.style.color = '#f00';
+      if (!hhtpUsers.includes(user)) {
+        status.textContent = 'Account Not Found, try signing in.';
+        return;
       }
+      hhtpUser = user;
+      localStorage.setItem('hhtpUser', user);
+      localStorage.setItem(`lastSeen_${user}`, getInbox(user).length);
+      renderButtons();
+      updateWelcome();
     }
 
     function submitSignup() {
       const user = document.getElementById('newuser').value.trim();
-      const pass = document.getElementById('newpass').value.trim();
-      if (user && pass) {
-        hhtpUser = user;
-        localStorage.setItem('hhtpUser', user);
-        renderButtons();
-        updateWelcome();
-        load('feed');
-      }
+      if (!user) return;
+      hhtpUsers.push(user);
+      localStorage.setItem('hhtpUsers', JSON.stringify(hhtpUsers));
+      hhtpUser = user;
+      localStorage.setItem('hhtpUser', user);
+      localStorage.setItem(`lastSeen_${user}`, 0);
+      renderButtons();
+      updateWelcome();
+      load('feed');
     }
 
     function uploadFeed() {
@@ -171,15 +157,9 @@
       const fileInput = document.getElementById('video-upload');
       const file = fileInput.files[0];
       if (!file) return;
-
       const filename = `${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from('hhtp-feed').upload(filename, file);
-
-      if (error) {
-        alert('Upload failed: ' + error.message);
-        return;
-      }
-
+      if (error) return alert('Upload failed: ' + error.message);
       const url = `https://bxbqofexcvssbcyprqwj.supabase.co/storage/v1/object/public/hhtp-feed/${filename}`;
       const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
       feed.push(url);
@@ -190,33 +170,29 @@
     function loadFeed() {
       const list = document.getElementById('feed-list');
       const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
-      list.innerHTML = feed.map(f => {
+      list.innerHTML = feed.map((f, i) => {
+        const followBtn = `<button onclick="followItem('feed_${i}')">Follow</button>`;
         if (f.endsWith('.mp4')) {
-          return `<li><video width="300" controls><source src="${f}" type="video/mp4"></video></li>`;
+          return `<li><video width="300" controls><source src="${f}" type="video/mp4"></video>${followBtn}</li>`;
         } else {
-          return `<li>${f}</li>`;
+          return `<li>${f} ${followBtn}</li>`;
         }
       }).join('');
     }
 
-    function loadMessages() {
-      const list = document.getElementById('message-list');
-      const messages = JSON.parse(localStorage.getItem('hhtpMessages') || '[]');
-      list.innerHTML = messages.map(m => `<li>${m}</li>`).join('');
-    }
-
-    function sendMessage() {
-      const box = document.getElementById('message-box');
-      const msg = box.value.trim();
-      if (!msg) return;
-      const messages = JSON.parse(localStorage.getItem('hhtpMessages') || '[]');
-      messages.push(msg);
-      localStorage.setItem('hhtpMessages', JSON.stringify(messages));
-      box.value = '';
-      loadMessages();
+    function uploadThread() {
+      const title = document.getElementById('thread-title').value.trim();
+      const body = document.getElementById('thread-body').value.trim();
+      if (!title || !body) return;
+      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
+      threads.push({ title, body, replies: [] });
+      localStorage.setItem('hhtpThreads', JSON.stringify(threads));
+      loadThreads();
     }
 
     function loadThreads() {
       const list = document.getElementById('thread-list');
       const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      list.innerHTML = threads.map
+      list.innerHTML = threads.map((t, i) => `
+        <li>
+          <strong>${t
