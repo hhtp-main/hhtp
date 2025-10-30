@@ -173,7 +173,7 @@
       if (!file) return;
 
       const filename = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage.from('hhtp-feed').upload(filename, file);
+      const { error } = await supabase.storage.from('hhtp-feed').upload(filename, file);
 
       if (error) {
         alert('Upload failed: ' + error.message);
@@ -219,5 +219,4 @@
     function loadThreads() {
       const list = document.getElementById('thread-list');
       const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      list.innerHTML = threads.map((t, i) => `
-        <li>
+      list.innerHTML = threads.map
