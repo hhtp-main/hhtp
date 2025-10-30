@@ -1,3 +1,4 @@
+/* Base layout */
 body {
   background: #0a0a0a;
   color: #eee;
@@ -16,6 +17,7 @@ p {
   color: #ccc;
 }
 
+/* Button grid */
 .button-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -24,7 +26,58 @@ p {
   margin: 20px auto;
 }
 
+/* Buttons */
 button {
   background: #222;
   color: #0f0;
   border: 1px solid #0f0;
+  padding: 12px;
+  font-size: 1em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background: #0f0;
+  color: #000;
+}
+
+/* Display zone */
+#display {
+  margin-top: 30px;
+  padding: 20px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+/* Inputs and textareas */
+input, textarea {
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #0f0;
+  background: #111;
+  color: #0f0;
+  border-radius: 5px;
+  margin-top: 10px;
+  width: 80%;
+}
+
+/* Lists */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 6px;
+  border-bottom: 1px solid #333;
+}
+
+/* Video styling */
+video {
+  margin-top: 10px;
+  border: 1px solid #0f0;
+  border-radius: 6px;
+}
