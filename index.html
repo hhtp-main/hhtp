@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>HHTP</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h1 id="welcome-title">HHTP</h1>
@@ -13,13 +14,18 @@
   <div id="display">Welcome to HHTP</div>
 
   <script>
+    const supabase = window.supabase.createClient(
+      'https://bxbqofexcvssbcyprqwj.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4YnFvZmV4Y3Zzc2JjeXBycXdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3ODAwMzgsImV4cCI6MjA3NzM1NjAzOH0.NPBLuH-yr9M3yf83pS5P05MYsPb_1QVGb-bPjQETxTA'
+    );
+
     let hhtpUser = localStorage.getItem('hhtpUser') || null;
 
     function renderButtons() {
       const grid = document.getElementById('button-grid');
       let buttons = `
-        <button onclick="load('threads')">Threads</button>
         <button onclick="load('feed')">Scroll Feed</button>
+        <button onclick="load('threads')">Threads</button>
         <button onclick="load('downloads')">Downloads</button>
         <button onclick="load('settings')">Settings</button>
         <button onclick="load('messages')">Messages</button>
@@ -70,22 +76,15 @@
           `;
           break;
 
-        case 'threads':
-          display.innerHTML = `
-            <h2>Threads</h2>
-            <ul id="thread-list"></ul>
-            <input type="text" id="new-thread" placeholder="New thread">
-            <button onclick="uploadThread()">Upload</button>
-          `;
-          loadThreads();
-          break;
-
         case 'feed':
           display.innerHTML = `
             <h2>Scroll Feed</h2>
             <ul id="feed-list"></ul>
-            <input type="text" id="new-feed" placeholder="Add to feed">
-            <button onclick="uploadFeed()">Upload</button>
+            <input type="text" id="new-feed" placeholder="Add text to feed">
+            <button onclick="uploadFeed()">Upload Text</button>
+            <br><br>
+            <input type="file" id="video-upload" accept="video/mp4">
+            <button onclick="uploadVideo()">Upload Video</button>
           `;
           loadFeed();
           break;
@@ -116,8 +115,15 @@
           loadMessages();
           break;
 
-        default:
-          display.textContent = `Loading ${module}...`;
+        case 'threads':
+          display.innerHTML = `
+            <h2>Threads</h2>
+            <ul id="thread-list"></ul>
+            <input type="text" id="new-thread" placeholder="New thread">
+            <button onclick="uploadThread()">Upload</button>
+          `;
+          loadThreads();
+          break;
       }
     }
 
@@ -146,48 +152,8 @@
         localStorage.setItem('hhtpUser', user);
         renderButtons();
         updateWelcome();
-        load('threads');
+        load('feed');
       }
-    }
-
-    function loadThreads() {
-      const list = document.getElementById('thread-list');
-      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      list.innerHTML = threads.map((t, i) => `
-        <li>
-          ${t.text}
-          <ul>${(t.replies || []).map(r => `<li>${r}</li>`).join('')}</ul>
-          <input type="text" id="reply-${i}" placeholder="Reply">
-          <button onclick="replyToThread(${i})">Reply</button>
-        </li>
-      `).join('');
-    }
-
-    function uploadThread() {
-      const input = document.getElementById('new-thread');
-      const thread = input.value.trim();
-      if (!thread) return;
-      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      threads.push({ text: thread, replies: [] });
-      localStorage.setItem('hhtpThreads', JSON.stringify(threads));
-      input.value = '';
-      loadThreads();
-    }
-
-    function replyToThread(index) {
-      const input = document.getElementById(`reply-${index}`);
-      const reply = input.value.trim();
-      if (!reply) return;
-      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
-      threads[index].replies.push(reply);
-      localStorage.setItem('hhtpThreads', JSON.stringify(threads));
-      loadThreads();
-    }
-
-    function loadFeed() {
-      const list = document.getElementById('feed-list');
-      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
-      list.innerHTML = feed.map(f => `<li>${f}</li>`).join('');
     }
 
     function uploadFeed() {
@@ -199,6 +165,38 @@
       localStorage.setItem('hhtpFeed', JSON.stringify(feed));
       input.value = '';
       loadFeed();
+    }
+
+    async function uploadVideo() {
+      const fileInput = document.getElementById('video-upload');
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const filename = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage.from('hhtp-feed').upload(filename, file);
+
+      if (error) {
+        alert('Upload failed: ' + error.message);
+        return;
+      }
+
+      const url = `https://bxbqofexcvssbcyprqwj.supabase.co/storage/v1/object/public/hhtp-feed/${filename}`;
+      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
+      feed.push(url);
+      localStorage.setItem('hhtpFeed', JSON.stringify(feed));
+      loadFeed();
+    }
+
+    function loadFeed() {
+      const list = document.getElementById('feed-list');
+      const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
+      list.innerHTML = feed.map(f => {
+        if (f.endsWith('.mp4')) {
+          return `<li><video width="300" controls><source src="${f}" type="video/mp4"></video></li>`;
+        } else {
+          return `<li>${f}</li>`;
+        }
+      }).join('');
     }
 
     function loadMessages() {
@@ -218,8 +216,8 @@
       loadMessages();
     }
 
-    renderButtons();
-    updateWelcome();
-  </script>
-</body>
-</html>
+    function loadThreads() {
+      const list = document.getElementById('thread-list');
+      const threads = JSON.parse(localStorage.getItem('hhtpThreads') || '[]');
+      list.innerHTML = threads.map((t, i) => `
+        <li>
