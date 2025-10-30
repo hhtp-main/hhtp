@@ -2,70 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>HHTP</title>
-  <style>
-    body {
-      background: #0a0a0a;
-      color: #eee;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
-    .button-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      max-width: 600px;
-      margin: 20px auto;
-    }
-    button {
-      background: #222;
-      color: #0f0;
-      border: 1px solid #0f0;
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    button:hover {
-      background: #0f0;
-      color: #000;
-    }
-    #display {
-      margin-top: 30px;
-      padding: 20px;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 8px;
-    }
-    input, textarea {
-      padding: 10px;
-      font-size: 1em;
-      border: 1px solid #0f0;
-      background: #111;
-      color: #0f0;
-      border-radius: 5px;
-      margin-top: 10px;
-      width: 80%;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      padding: 6px;
-      border-bottom: 1px solid #333;
-    }
-  </style>
+  <title>hhtp</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1 id="welcome-title">HHTP</h1>
-  <p>Modular chaos lives here.</p>
+  <h1 id="welcome-title">hhtp</h1>
+  <p>Downloads, Vidoes, Threads, Chaos.</p>
 
   <div class="button-grid" id="button-grid"></div>
   <div id="display">Welcome to HHTP</div>
@@ -254,4 +196,30 @@
       if (!item) return;
       const feed = JSON.parse(localStorage.getItem('hhtpFeed') || '[]');
       feed.push(item);
-      localStorage.setItem('hhtpFeed
+      localStorage.setItem('hhtpFeed', JSON.stringify(feed));
+      input.value = '';
+      loadFeed();
+    }
+
+    function loadMessages() {
+      const list = document.getElementById('message-list');
+      const messages = JSON.parse(localStorage.getItem('hhtpMessages') || '[]');
+      list.innerHTML = messages.map(m => `<li>${m}</li>`).join('');
+    }
+
+    function sendMessage() {
+      const box = document.getElementById('message-box');
+      const msg = box.value.trim();
+      if (!msg) return;
+      const messages = JSON.parse(localStorage.getItem('hhtpMessages') || '[]');
+      messages.push(msg);
+      localStorage.setItem('hhtpMessages', JSON.stringify(messages));
+      box.value = '';
+      loadMessages();
+    }
+
+    renderButtons();
+    updateWelcome();
+  </script>
+</body>
+</html>
